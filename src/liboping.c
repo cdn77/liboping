@@ -955,7 +955,7 @@ static pinghost_t *ping_alloc (void)
 	ph->addrlen = sizeof (struct sockaddr_storage);
 	ph->latency = -1.0;
 	ph->dropped = 0;
-	ph->ident   = ping_get_ident () & 0xFFFF;
+	ph->ident   = ping_get_ident () & 0x0FFF;
 
 	return (ph);
 }
