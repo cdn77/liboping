@@ -1641,10 +1641,9 @@ int ping_host_add (pingobj_t *obj, const char *host)
 		}
 		else
 		{
-			char errmsg[PING_ERRMSG_LEN];
+			char errmsg[64];
 
-			snprintf (errmsg, PING_ERRMSG_LEN, "Unknown `ai_family': %i", ai_ptr->ai_family);
-			errmsg[PING_ERRMSG_LEN - 1] = '\0';
+			snprintf (errmsg, sizeof(errmsg), "Unknown `ai_family': %i", ai_ptr->ai_family);
 
 			dprintf ("%s", errmsg);
 			ping_set_error (obj, "getaddrinfo", errmsg);
