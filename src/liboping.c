@@ -1930,9 +1930,12 @@ int ping_iterator_get_info (pingobj_iter_t *iter, int info,
 			break;
 
 		case PING_INFO_ADDR:
-            *buffer_len = sizeof(in_addr_t);
-            memcpy(buffer, &((struct sockaddr_in *)iter->addr)->sin_addr.s_addr, *buffer_len);
-            ret = 0;
+			ret = ENOMEM;
+			*buffer_len = sizeof (in_addr_t);
+			if (orig_buffer_len < sizeof (in_addr_t))
+				break;
+			*((in_addr_t *) buffer) = ((struct sockaddr_in *)iter->addr)->sin_addr.s_addr;
+			ret = 0;
 			break;
 	}
 
