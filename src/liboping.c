@@ -967,7 +967,6 @@ static void ping_free (pinghost_t *ph)
 
 	free (ph->username);
 	free (ph->hostname);
-	free (ph->data);
 
 	free (ph);
 }
@@ -1135,7 +1134,7 @@ pingobj_t *ping_construct (void)
 	obj->timeout    = PING_DEF_TIMEOUT;
 	obj->ttl        = PING_DEF_TTL;
 	obj->addrfamily = PING_DEF_AF;
-	obj->data       = strdup (PING_DEF_DATA);
+	obj->data       = PING_DEF_DATA;
 	obj->qos        = 0;
 	obj->fd4        = -1;
 	obj->fd6        = -1;
@@ -1159,7 +1158,6 @@ void ping_destroy (pingobj_t *obj)
 		current = next;
 	}
 
-	free (obj->data);
 	free (obj->srcaddr);
 	free (obj->device);
 
@@ -1227,15 +1225,6 @@ int ping_setopt (pingobj_t *obj, int option, void *value)
 				free (obj->srcaddr);
 				obj->srcaddr = NULL;
 			}
-			break;
-
-		case PING_OPT_DATA:
-			if (obj->data != NULL)
-			{
-				free (obj->data);
-				obj->data = NULL;
-			}
-			obj->data = strdup ((const char *) value);
 			break;
 
 		case PING_OPT_SOURCE:
@@ -1599,14 +1588,7 @@ int ping_host_add (pingobj_t *obj, const char *host)
 		return (-1);
 	}
 
-	/* obj->data is not garuanteed to be != NULL */
-	if ((ph->data = strdup (obj->data == NULL ? PING_DEF_DATA : obj->data)) == NULL)
-	{
-		dprintf ("Out of memory!\n");
-		ping_set_errno (obj, errno);
-		ping_free (ph);
-		return (-1);
-	}
+    ph->data = obj->data;
 
 	if ((ai_return = getaddrinfo (host, NULL, &ai_hints, &ai_list)) != 0)
 	{
