@@ -1653,6 +1653,57 @@ int ping_host_add (pingobj_t *obj, const char *host)
 	return (0);
 } /* int ping_host_add */
 
+int ping_addr_add (pingobj_t *obj, in_addr_t addr)
+{
+	pinghost_t *ph;
+
+	struct sockaddr_in *saddr;
+
+	if (obj == NULL)
+		return (-1);
+
+	if ((ph = ping_alloc ()) == NULL)
+	{
+		dprintf ("Out of memory!\n");
+		return (-1);
+	}
+
+    ph->data = obj->data;
+
+    saddr = (struct sockaddr_in*)ph->addr;
+    saddr->sin_family = AF_INET;
+    saddr->sin_addr.s_addr = addr;
+
+    ph->addrlen = sizeof(struct sockaddr_in);
+    ph->addrfamily = saddr->sin_family;
+
+	/*
+	 * Adding in the front is much easier, but then the iterator will
+	 * return the host that was added last as first host. That's just not
+	 * nice. -octo
+	 */
+	if (obj->head == NULL)
+	{
+		obj->head = ph;
+	}
+	else
+	{
+		pinghost_t *hptr;
+
+		hptr = obj->head;
+		while (hptr->next != NULL)
+			hptr = hptr->next;
+
+		assert ((hptr != NULL) && (hptr->next == NULL));
+		hptr->next = ph;
+	}
+
+	ph->table_next = obj->table[ph->ident % PING_TABLE_LEN];
+	obj->table[ph->ident % PING_TABLE_LEN] = ph;
+
+	return (0);
+} /* int ping_addr_add */
+
 int ping_host_remove (pingobj_t *obj, const char *host)
 {
 	pinghost_t *pre, *cur, *target;
@@ -1876,6 +1927,12 @@ int ping_iterator_get_info (pingobj_iter_t *iter, int info,
 				break;
 			memcpy(buffer,&iter->recv_qos,*buffer_len);
 			ret = 0;
+			break;
+
+		case PING_INFO_ADDR:
+            *buffer_len = sizeof(in_addr_t);
+            memcpy(buffer, &((struct sockaddr_in *)iter->addr)->sin_addr.s_addr, *buffer_len);
+            ret = 0;
 			break;
 	}
 

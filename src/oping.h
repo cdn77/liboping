@@ -28,6 +28,7 @@
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -71,6 +72,7 @@ int ping_setopt (pingobj_t *obj, int option, void *value);
 int ping_send (pingobj_t *obj);
 
 int ping_host_add (pingobj_t *obj, const char *host);
+int ping_addr_add (pingobj_t *obj, in_addr_t addr);
 int ping_host_remove (pingobj_t *obj, const char *host);
 
 pingobj_iter_t *ping_iterator_get (pingobj_t *obj);
@@ -88,6 +90,7 @@ int ping_iterator_count (pingobj_t *obj);
 #define PING_INFO_DROPPED   9
 #define PING_INFO_RECV_TTL 10
 #define PING_INFO_RECV_QOS 11
+#define PING_INFO_ADDR     12
 int ping_iterator_get_info (pingobj_iter_t *iter, int info,
 		void *buffer, size_t *buffer_len);
 
