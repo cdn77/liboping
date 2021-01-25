@@ -895,49 +895,12 @@ static int ping_set_qos (pingobj_t *obj, uint8_t qos)
 	return (ret);
 }
 
-static int ping_get_ident (void)
-{
-	int fd;
-	static int did_seed = 0;
-
-	int retval;
-
-	if (did_seed == 0)
-	{
-		if ((fd = open ("/dev/urandom", O_RDONLY)) != -1)
-		{
-			unsigned int seed;
-
-			if (read (fd, &seed, sizeof (seed)) != -1)
-			{
-				did_seed = 1;
-				dprintf ("Random seed:   %#x\n", seed);
-				srandom (seed);
-			}
-
-			close (fd);
-		}
-#if WITH_DEBUG
-		else
-		{
-			char errbuf[PING_ERRMSG_LEN];
-			dprintf ("open (/dev/urandom): %s\n",
-					sstrerror (errno, errbuf, sizeof (errbuf)));
-		}
-#endif
-	}
-
-	retval = (int) random ();
-
-	dprintf ("Random number: %#x\n", retval);
-
-	return (retval);
-}
-
 static pinghost_t *ping_alloc (void)
 {
 	pinghost_t *ph;
 	size_t      ph_size;
+
+    static int  ident = 0;
 
 	ph_size = sizeof (pinghost_t)
 		+ sizeof (struct sockaddr_storage)
@@ -955,7 +918,7 @@ static pinghost_t *ping_alloc (void)
 	ph->addrlen = sizeof (struct sockaddr_storage);
 	ph->latency = -1.0;
 	ph->dropped = 0;
-	ph->ident   = ping_get_ident () & 0x0FFF;
+	ph->ident   = (ident++) & 0x0FFF;
 
 	return (ph);
 }
